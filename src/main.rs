@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use clap::{Args, Parser, Subcommand};
-use reqwest::Url;
-use std::str::FromStr;
+use reqwest::{Client, Url};
+use std::{collections::HashMap, str::FromStr};
 
 /// A naive httpie implementation with Rust
 #[derive(Parser, Debug)]
@@ -74,7 +74,30 @@ fn parse_kv_pair(s: &str) -> Result<KvPair> {
     Ok(s.parse()?)
 }
 
-fn main() {
+#[tokio::main]
+async fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
-    println!("{:?}", opts);
+    // 生成 http 客户端
+    let client = Client::new();
+    let result = match opts.subcmd {
+        SubCommand::Get(ref args) => get(client, args).await?,
+        SubCommand::Post(ref args) => post(client, args).await?,
+    };
+    Ok(result)
+}
+
+async fn get(client: Client, args: &Get) -> Result<()> {
+    let resp = client.get(&args.url).send().await?;
+    println!("{:?}", resp.text().await?);
+    Ok(())
+}
+
+async fn post(client: Client, args: &Post) -> Result<()> {
+    let mut body = HashMap::new();
+    for pair in args.body.iter() {
+        body.insert(&pair.k, &pair.v);
+    }
+    let resp = client.post(&args.url).json(&body).send().await?;
+    println!("{:?}", resp.text().await?);
+    Ok(())
 }
