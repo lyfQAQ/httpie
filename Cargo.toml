@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.82"                                     # 错误处理
-clap = "4.5.4"                                        # 命令行解析
+clap = { version = "4.5.4", features = ["derive"] }   # 命令行解析
 colored = "2.1.0"                                     # 命令终端彩色显示
 jsonxf = "1.1.1"                                      # JSON 格式化
 mime = "0.3.17"                                       # 处理 mime 类型
